@@ -1,0 +1,32 @@
+{
+    "id": "4E813F59",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1618856780721.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "expression": "post_offices",
+        "caption": "post_offices",
+        "totalObservations": "166140",
+        "displayedObservations": "166140",
+        "variables": "29",
+        "cacheKey": "0F4D24EC",
+        "object": "post_offices",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=post_offices&cache_key=0F4D24EC&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 8463523071908913197,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1618856780721,
+    "read_only": false,
+    "read_only_alternatives": []
+}
