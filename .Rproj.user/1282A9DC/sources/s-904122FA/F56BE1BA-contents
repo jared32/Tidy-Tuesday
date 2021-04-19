@@ -1,0 +1,44 @@
+---
+title: "4.16 Post Office"
+author: "Jared Minetola"
+date: "7/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+library(scales)
+knitr::opts_chunk$set(echo = FALSE)
+theme_set(theme_bw())
+
+tt <- tidytuesdayR::tt_load('2021-04-13')
+
+post_offices <- tt$post_offices
+
+post_offices %>% 
+  filter(established>=1750,
+         stamp_index<=9,
+         is.na(duration) | (duration >=0 & duration <= 200)) %>% 
+  mutate(duration = case_when(is.na(duration)~2002-established,
+                              TRUE~duration)) %>% 
+  select(id,stamp_index,duration) %>% 
+  mutate(stamp_index=as.character(stamp_index)) %>% 
+ # group_by(stamp_index) %>% 
+#  summarise(avg_duration = mean(duration),
+#            number = n()) %>% 
+ # ungroup() %>% 
+  ggplot(aes(x=stamp_index,
+             y=duration)) +
+   geom_boxplot(outlier.alpha = .1,
+                outlier.color = "orange") +
+   labs(x="Stamp Scarcity (low to high)",
+        y="Duration (years)",
+        title = "Post Office Duration vs Stamp Scarcity") +
+  theme_bw()
+  
+
+```
+
+
+
