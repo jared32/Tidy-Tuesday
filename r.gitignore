@@ -1,1 +1,10 @@
-TidyTuesdayOG
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# Any Old Tidy Tuesday files
+
+TidyTuesdayOG/*
