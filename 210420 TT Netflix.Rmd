@@ -1,0 +1,15 @@
+---
+title: "210420 TT Netflix"
+author: "Jared Minetola"
+date: "4/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidytuesdayR)
+library(tidyverse)
+library(scales)
+knitr::opts_chunk$set(echo = FALSE)
+
+tt <- tidytuesdayR::tt_load('2021-04-20')
+```
