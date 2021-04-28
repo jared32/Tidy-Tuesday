@@ -1,7 +1,6 @@
 ---
-title: "210420 TT Netflix"
+title: "Tidy Tuesday 4/20/21 - Netflix"
 author: "Jared Minetola"
-date: "4/20/2021"
 output: html_document
 ---
 
@@ -9,7 +8,129 @@ output: html_document
 library(tidytuesdayR)
 library(tidyverse)
 library(scales)
+library(tidytext)
+library(stopwords)
+library(ggwordcloud)
+library(gganimate)
 knitr::opts_chunk$set(echo = FALSE)
 
 tt <- tidytuesdayR::tt_load('2021-04-20')
+
+netflix_titles <- tt$netflix_titles %>% 
+  select(show_id, type, country, date_added,listed_in,description) %>% 
+  mutate(date_added = as.integer(substr(date_added,nchar(date_added)-4+1,nchar(date_added)))) %>% 
+  filter(!is.na(date_added))
+
+d <-tibble(type = netflix_titles$type, txt=netflix_titles$description,year=netflix_titles$date_added)
+
+descriptions <- d %>% 
+  group_by(type) %>% 
+  unnest_tokens(word,txt) %>% 
+  ungroup() %>% 
+  anti_join(stop_words,by="word") %>% 
+  count(type,word,sort=TRUE) 
+
+tv_descriptions <- descriptions %>% 
+  filter(type=='TV Show') %>% 
+  top_n(50)
+
+movie_descriptions <- descriptions %>% 
+  filter(type=='Movie') %>% 
+  top_n(20)
+
+descriptions2 <- movie_descriptions %>% 
+  union(tv_descriptions) %>% 
+  mutate(type = case_when(type=='Movie'~'Movies',
+                          type=='TV Show'~'TV Shows'))
+
+descriptions_over_time <- d %>% 
+  group_by(type) %>% 
+  unnest_tokens(word,txt) %>% 
+  ungroup() %>% 
+  anti_join(stop_words,by="word") %>% 
+  filter(year>=2016,
+         year<2021) %>% 
+  count(type,year,word) %>% 
+  group_by(type,year) %>% 
+    mutate(rank=rank(-n,ties.method=c("first"))) %>% 
+    group_by(type,word) %>% 
+    filter(rank<=10) %>% 
+    ungroup() %>% 
+  mutate(vlabel=paste0(" ",round(n)))
+
 ```
+
+# What are Netflix Movies and Shows about? <br>
+
+```{r, wordcloud}
+
+set.seed(32)
+ggplot(descriptions2,aes(label=word,size=n,color=word)) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 24) +
+  scale_color_viridis_d() +
+  theme_minimal() +
+  facet_wrap(~type) +
+  labs(title = "What are Netflix Movies and Shows about?",
+       subtitle = "Size of word indicates how many times it is used in title description")
+
+```
+
+```{r, overtime, include=FALSE}
+
+staticplot <- 
+  descriptions_over_time %>% 
+  ggplot(aes(rank,
+             group=word,
+             fill=word,
+             color=word)) + 
+  geom_tile(aes(y=n/2,
+                height=n,
+                width=.9),
+            alpha=.8,
+            color=NA) +
+  geom_text(aes(y=0,
+                label=paste(str_to_title(word)," ")),
+            vjust=.2,
+            hjust=1) +
+  geom_text(aes(y=n,
+                  label=vlabel,
+                  hjust=0)) +
+  coord_flip(clip = "off",expand=FALSE) +
+  scale_y_continuous() +
+  scale_x_reverse() +
+  guides(color = FALSE,
+         fill = FALSE) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.x =element_blank(),
+        axis.ticks.y =element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position="none",
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        #panel.grid.major.x = element_line( size=.1, color="grey" ),
+        #panel.grid.minor.x = element_line( size=.1, color="grey" ),
+        plot.title=element_text(size=25, hjust=0.5, face="bold", colour="grey", vjust=0),
+        plot.subtitle=element_text(size=18, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=8, hjust=0.5, face="italic", color="grey"),
+        plot.background=element_blank(),
+       plot.margin = margin(2,2, 2, 4, "cm")) +
+  facet_wrap(~type,scales = "free_y",nrow=2,ncol=1) 
+
+anim <- staticplot +
+  transition_states(year, transition_length = 5, state_length = 3) +
+  view_follow(fixed_x = TRUE) +
+  labs(title = "Netflix Topic Popularity: {closest_state}",
+       subtitle = "Number of titles with word in description, by year")
+
+```
+
+```{r, warning=FALSE}
+animate(anim)
+```
+
